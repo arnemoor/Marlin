@@ -130,7 +130,7 @@ void GcodeSuite::dwell(millis_t time) {
     while (G29()) { // G29 should return true for failed probes ONLY
       if (retries--) {
         #ifdef G29_ACTION_ON_RECOVER
-          SERIAL_ECHOLNPGM("//action:" G29_ACTION_ON_RECOVER);
+          host_action(PSTR(G29_ACTION_ON_RECOVER));
         #endif
         #ifdef G29_RECOVER_COMMANDS
           process_subcommands_now_P(PSTR(G29_RECOVER_COMMANDS));
@@ -141,7 +141,7 @@ void GcodeSuite::dwell(millis_t time) {
           process_subcommands_now_P(PSTR(G29_FAILURE_COMMANDS));
         #endif
         #ifdef G29_ACTION_ON_FAILURE
-          SERIAL_ECHOLNPGM("//action:" G29_ACTION_ON_FAILURE);
+          host_action(PSTR(G29_ACTION_ON_FAILURE));
         #endif
         #if ENABLED(G29_HALT_ON_FAILURE)
           kill(PSTR(MSG_ERR_PROBING_FAILED));
@@ -268,6 +268,10 @@ void GcodeSuite::process_parsed_command(
 
       #if HAS_MESH
         case 42: G42(); break;                                    // G42: Coordinated move to a mesh point
+      #endif
+
+      #if ENABLED(CALIBRATION_GCODE)
+        case 425: G425(); break;                                  // G425: Perform calibration with calibration cube
       #endif
 
       #if ENABLED(DEBUG_GCODE_PARSER)
@@ -547,7 +551,7 @@ void GcodeSuite::process_parsed_command(
 
       #if ENABLED(EXT_SOLENOID) || ENABLED(MANUAL_SOLENOID_CONTROL)
         case 380: M380(); break;                                  // M380: Activate solenoid on active (or specified) extruder
-        case 381: M381(); break;                                  // M381: Disable all solenoids
+        case 381: M381(); break;                                  // M381: Disable all solenoids or, if MANUAL_SOLENOID_CONTROL, active (or specified) solenoid
       #endif
 
       case 400: M400(); break;                                    // M400: Finish all moves
@@ -555,6 +559,10 @@ void GcodeSuite::process_parsed_command(
       #if HAS_BED_PROBE
         case 401: M401(); break;                                  // M401: Deploy probe
         case 402: M402(); break;                                  // M402: Stow probe
+      #endif
+
+      #if ENABLED(PRUSA_MMU2)
+        case 403: M403(); break;
       #endif
 
       #if ENABLED(FILAMENT_WIDTH_SENSOR)
@@ -699,6 +707,10 @@ void GcodeSuite::process_parsed_command(
         case 867: M867(); break;                                  // M867: Toggle error correction
         case 868: M868(); break;                                  // M868: Set error correction threshold
         case 869: M869(); break;                                  // M869: Report axis error
+      #endif
+
+      #if ENABLED(MAGNETIC_PARKING_EXTRUDER)
+        case 951: M951(); break;                                  // M951: Set Magnetic Parking Extruder parameters
       #endif
 
       #if ENABLED(Z_STEPPER_AUTO_ALIGN)

@@ -29,7 +29,7 @@
 
 #include "../Marlin.h"
 #include "../sd/cardreader.h"
-#include "../module/temperature.h"
+#include "temperature.h"
 #include "../lcd/ultralcd.h"
 
 #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
@@ -37,7 +37,7 @@
 #endif
 
 #if ENABLED(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED) && ENABLED(SDSUPPORT)
-  #include "../module/printcounter.h" // for print_job_timer
+  #include "printcounter.h" // for print_job_timer
 #endif
 
 Endstops endstops;
@@ -215,6 +215,16 @@ void Endstops::init() {
       SET_INPUT_PULLDOWN(Z3_MAX_PIN);
     #else
       SET_INPUT(Z3_MAX_PIN);
+    #endif
+  #endif
+
+  #if HAS_CALIBRATION_PIN
+    #if ENABLED(CALIBRATION_PIN_PULLUP)
+      SET_INPUT_PULLUP(CALIBRATION_PIN);
+    #elif ENABLED(CALIBRATION_PIN_PULLDOWN)
+      SET_INPUT_PULLDOWN(CALIBRATION_PIN);
+    #else
+      SET_INPUT(CALIBRATION_PIN);
     #endif
   #endif
 
@@ -872,7 +882,7 @@ void Endstops::update() {
       #if HAS_Z3_MAX
         ES_REPORT_CHANGE(Z3_MAX);
       #endif
-      SERIAL_ECHOPGM("\n\n");
+      SERIAL_ECHOLNPGM("\n");
       analogWrite(LED_PIN, local_LED_status);
       local_LED_status ^= 255;
       old_live_state_local = live_state_local;
